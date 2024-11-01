@@ -50,10 +50,11 @@ public:
         }
     }
     ~MyVector(){
-        free(arr_);
+        Free();
     }
     MyVector& operator=(MyVector&& other) noexcept{
         if(this!=&other){
+            Free();
             size_=other.size_;
             capacity_=other.capacity_;
             arr_=other.arr_;
@@ -65,6 +66,7 @@ public:
     }
     const MyVector& operator=(const MyVector&& other){
         if(this!=&other){
+            Free();
             size_=other.size_;
             capacity_=other.capacity_;
             arr_=other.arr_;
@@ -76,6 +78,7 @@ public:
     }
     MyVector& operator=(const MyVector& other){
         if(this!=&other){
+            Free();
             arr_=nullptr;
             capacity_=other.capacity_;
             size_=other.size_;
@@ -143,10 +146,10 @@ public:
         }
         return arr_[ind];
     }
-    size_t size(){
+    size_t size() const{
         return size_;
     }
-    size_t capacity(){
+    size_t capacity() const{
         return capacity_;
     }
     bool empty(){
@@ -161,9 +164,9 @@ public:
         std::swap(arr_,other.arr_);
     }
     void swap(MyVector& other) noexcept {
-        std::swap(size_, other.size_);
-        std::swap(capacity_, other.capacity_);
-        std::swap(arr_, other.arr_);
+        MyVector<T>temp=std::move(*this);
+        *this=std::move(other);
+        other=std::move(temp);
     }
     void resize(size_t new_size){
         if(new_size<=size_){
@@ -369,7 +372,23 @@ public:
         }
         return size_<=>other.size();
     }
+    bool operator==(const MyVector& other) const{
+        if(size_!=other.size_){
+            return 0;
+        }
+        for(size_t i=0;i<size_;++i){
+            if((*this)[i]!=other[i]){
+                return 0;
+            }
+        }
+        return 1;
+    }
 private:
+    void Free(){
+        if(arr_){
+            free(arr_);
+        }
+    }
     void Resize(size_t new_capacity){
         T* new_arr=static_cast<T*>(realloc(arr_, new_capacity * sizeof(T)));
         if(!new_arr){
